@@ -39,9 +39,6 @@ class RetriveUpateDestroyMenu(generics.RetrieveUpdateDestroyAPIView):
             return get_object_or_404(MenuItem,pk=pk)
            
 
-
-
-
 class GroupListCreate(generics.ListCreateAPIView):
       queryset = Group.objects.all()
       serializer_class = GroupSerializer
