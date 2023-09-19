@@ -18,7 +18,9 @@ class CategoryView(generics.ListAPIView):
       queryset = Category.objects.all()
       serializer_class = CategorySerializer
 
-
+#====================================================================
+#                  MenuItems Management
+#              ===============================
 class MenuItemsView(generics.ListCreateAPIView):
       queryset = MenuItem.objects.all()
       serializer_class = MenuItemSerializer
@@ -38,7 +40,7 @@ class RetriveUpateDestroyMenu(generics.RetrieveUpdateDestroyAPIView):
             pk = self.kwargs.get('pk')
             return get_object_or_404(MenuItem,pk=pk)
            
-
+#groups management
 class GroupListCreate(generics.ListCreateAPIView):
       queryset = Group.objects.all()
       serializer_class = GroupSerializer
@@ -48,15 +50,25 @@ class GroupRetriveupdateDestroy(generics.RetrieveUpdateDestroyAPIView):
       queryset = Group.objects.all()
       serializer_class = GroupSerializer
       permission_classes = [IsAuthenticated,IsManager]
+ #================================================================================
+ 
       
-class ManagerUserListView(generics.ListAPIView):
-      queryset = User.objects.filter(groups__name = 'Manager')
+#                 Manager group management
+#              ===============================
+
+
+class ManagerUserListCreateView(generics.ListCreateAPIView):
+      model = User
+      
+      def get_queryset(self):
+            return User.objects.filter(groups__name = 'Manager')
+      def post(self, request, *args, **kwargs):
+            queryset =User.objects.all()
+            return self.create(request,*args, **kwargs)
+
       serializer_class = UserSerializer
       permission_classes = [IsAuthenticated,IsManager]
-class ManagerUserCreateView(generics.CreateAPIView):
-      queryset = User.objects.all()
-      serializer_class = UserSerializer
-      permission_classes = [IsAuthenticated,IsManager]
+      
       def perform_create(self, serializer):
             manager_group, created = Group.objects.get_or_create(name= "Manager")
             user = serializer.save()
@@ -74,5 +86,38 @@ class ManagerUserDeleteView(generics.DestroyAPIView):
                   return Response(status=status.HTTP_200_OK)
             else:
                   return Response(status=status.HTTP_404_NOT_FOUND)
-                  
+
+
+#=================================================================================
+#                  Delivery group management
+#              ===============================
+
+
+class DeliveryUserListCreateView(generics.ListCreateAPIView):
+      
+      model = User
+      def get_queryset(self):
+            return User.objects.filter(groups__name = 'Delivery')
+      def post(self, request, *args, **kwargs):
+            queryset =User.objects.all()
+            return self.create(request,*args, **kwargs)
+      
+      serializer_class = UserSerializer
+      permission_classes = [IsAuthenticated, IsManager]
+      
+      def perform_create(self, serializer):
+            delivery_group , created = Group.objects.get_or_create(name = "Delivery")
+            user = serializer.save()
+            user.groups.add(delivery_group)
             
+class DeliveryUserDeleteView(generics.DestroyAPIView):
+      queryset = User.objects.all()
+      
+      def destroy(self, request, *args, **kwargs):
+            user = self.get_object()
+            delivery_group = Group.objects.get(name = 'Delivery')
+            if delivery_group in user.groups.all():
+                  user.groups.remove(delivery_group)
+                  return Response( status= status.HTTP_200_OK)
+            else:
+                  return Response( status= status.HTTP_404_NOT_FOUND)
