@@ -101,7 +101,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("quantity", models.SmallIntegerField()),
-                ("unint_price", models.DecimalField(decimal_places=2, max_digits=5)),
+                ("unit_price", models.DecimalField(decimal_places=2, max_digits=5)),
                 ("price", models.DecimalField(decimal_places=2, max_digits=5)),
                 (
                     "menuitem",
@@ -134,7 +134,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("quantity", models.SmallIntegerField()),
-                ("unint_price", models.DecimalField(decimal_places=2, max_digits=5)),
+                ("unit_price", models.DecimalField(decimal_places=2, max_digits=5)),
                 ("price", models.DecimalField(decimal_places=2, max_digits=5)),
                 (
                     "menuitem",
