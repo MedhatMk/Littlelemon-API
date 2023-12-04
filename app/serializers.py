@@ -49,6 +49,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         }
 class OrderSerializer(serializers.ModelSerializer):
     order_items = OrderItemSerializer(many=True, read_only=True)
+    
 
     class Meta:
         model = Order
@@ -56,3 +57,7 @@ class OrderSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'total': {'read_only': True}
         }
+        def get_order_items(self, obj):
+            order_items = OrderItem.objects.filter(order=obj)
+            serializer = OrderItemSerializer(order_items, many=True, context={'request': self.context['request']})
+            return serializer.data

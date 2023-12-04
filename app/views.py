@@ -7,7 +7,7 @@ from .serializers import CartItemSerializer, CategorySerializer, GroupSerializer
 from rest_framework import generics,permissions,status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-
+from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 # Create your views here.
 
 class IsManager(permissions.BasePermission):
@@ -24,21 +24,22 @@ class CategoryView(generics.ListAPIView):
 class MenuItemsView(generics.ListCreateAPIView):
       queryset = MenuItem.objects.all()
       serializer_class = MenuItemSerializer
-
-      def get_permissions(self):
-           if self.request.method == 'GET':
-                 return [IsAuthenticated()]
-           elif self.request.method == 'POST':
-                 return [IsAuthenticated(),IsManager()]
+      throttle_classes = [AnonRateThrottle, UserRateThrottle]
+      # def get_permissions(self):
+      #      if self.request.method == 'GET':
+      #            return [IsAuthenticated()]
+      #      elif self.request.method == 'POST':
+      #            return [IsAuthenticated(),IsManager()]
 
 
 class RetriveUpateDestroyMenu(generics.RetrieveUpdateDestroyAPIView):
 
       serializer_class = MenuItemSerializer
       permission_classes= [IsAuthenticated,IsManager]
+      throttle_classes = [AnonRateThrottle, UserRateThrottle]
       def get_object(self):
             pk = self.kwargs.get('pk')
-            return get_object_or_404(MenuItem,pk=pk)
+            return  MenuItem.objects.get(pk = pk)
 
 #groups management
 class GroupListCreate(generics.ListCreateAPIView):
@@ -180,7 +181,7 @@ class CartListCreate(generics.ListCreateAPIView):
 class OrderView(generics.ListCreateAPIView):
       serializer_class = OrderSerializer
       permission_classes = [IsAuthenticated]
-
+      throttle_classes = [AnonRateThrottle, UserRateThrottle]
       def get_queryset(self):
             user = self.request.user
             if user.groups.filter(name = 'Manager').exists():
@@ -204,12 +205,13 @@ class OrderView(generics.ListCreateAPIView):
                         price = item.price
                   )
                   item.delete()
+            Cart.objects.filter(user = user).delete()
 
 class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
       serializer_class = OrderSerializer
       permission_classes = [IsAuthenticated]
       def get_queryset(self):
             user = self.request.user
-            if user.groups.filter(name='manager').exists():
+            if user.groups.filter(name='Manager').exists():
                   return Order.objects.all()
             return Order.objects.filter(user=user)
